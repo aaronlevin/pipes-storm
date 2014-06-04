@@ -1,9 +1,18 @@
 module HaskellStorm (
-    PidOut(..)
+    BoltIn (..)
+  , Handshake (..)
+  , PidOut (..)
   , StormConfig (..)
+  , writePid
   ) where
 
 import HaskellStorm.Internal (
-      PidOut(..)
+      BoltIn (..)
+    , Handshake (..)
+    , PidOut (..)
     , StormConfig (..)
+    )
+
+import HaskellStorm.System (
+    writePid
     )
