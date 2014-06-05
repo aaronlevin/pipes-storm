@@ -1,16 +1,19 @@
-{-# LANGUAGE OverloadedString #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module HaskellStorm.IO
     (
+        initHandshake
     ) where
 
-import Pipes
-import qualified Pipes.Prelude (stdinLn, takeWhile)
+import Data.Aeson (decode)
+import Data.ByteString.Lazy.Char8 (pack)
+import HaskellStorm.Internal (Handshake)
+import HaskellStorm.System (writePid)
 
-check :: Monad m => (a -> Boolean) -> (a -> b) -> (a -> Left c) -> Pipe a (Either b c) m r
-check f t e = do
-    x <- await
-    if (f x) then yield (Right t x) else yield (e x) 
-handshake = stdinLn 
-            >-> takeWhile (/= "end")
-            >-> 
+initHandshake :: IO ()
+initHandshake = do
+    initMsg  <- getLine
+    case (decode (pack initMsg) :: Maybe Handshake) of
+        Just handshake -> writePid
+        Nothing -> putStrLn "error"
+

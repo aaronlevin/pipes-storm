@@ -2,18 +2,20 @@
 
 module HaskellStorm.Internal
     ( BoltIn (..)
+    , EmitCommand (..)
     , Handshake (..)
     , PidOut (..)
     , StormConfig (..)
-    , StormCommand (..)
+    , StormOut (..)
     ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (mzero)
 import Data.Aeson ((.:), (.:?), (.=), Array (..), decode, FromJSON (..), object, ToJSON(..), Value(..))
 import qualified Data.Aeson as A
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
-import qualified Data.ByteString.Lazy.Char8 as BS
+import Data.Vector (fromList)
 
 type StormConfig = Value
 type StormContext = Value
@@ -54,18 +56,18 @@ instance ToJSON PidOut where
 
 ---
 
-data StormCommand = Next | Ack | Fail deriving (Show, Eq)
+data EmitCommand = EmitNext | EmitAck | EmitFail deriving (Show, Eq)
 
-instance FromJSON StormCommand where
-    parseJSON (A.String "next") = return Next
-    parseJSON (A.String "ack")  = return Ack
-    parseJSON (A.String "fail") = return Fail
+instance FromJSON EmitCommand where
+    parseJSON (A.String "next") = return EmitNext
+    parseJSON (A.String "ack")  = return EmitAck
+    parseJSON (A.String "fail") = return EmitFail
     parseJSON _                 = mzero
 
-instance ToJSON StormCommand where
-    toJSON Next = A.String "next"
-    toJSON Ack  = A.String "ack"
-    toJSON Fail = A.String "fail"
+instance ToJSON EmitCommand where
+    toJSON EmitNext = A.String "next"
+    toJSON EmitAck  = A.String "ack"
+    toJSON EmitFail = A.String "fail"
 
 ---
 
@@ -94,19 +96,24 @@ instance ToJSON BoltIn where
                , "tuple" .= toJSON inputTuples
                ]
 
+---
+
+data StormOut = Emit { anchors :: [Text]
+                     , stream :: Maybe Text
+                     , task :: Maybe Text
+                     , tuples :: StormTuples
+                     }
+              | Ack  { ackTupleId :: Text }
+              | Fail { failTupleId :: Text }
+              | Log  { logMsg :: Text } deriving (Eq, Show)
+
+instance ToJSON StormOut where
+    toJSON (Emit anchors stream task tuples) =
+        object $ [ "anchors" .= fromList anchors
+                 , "command" .= A.String "emit"
+                 , "tuple" .= tuples
+                 ] ++ catMaybes [ ("stream" .=) . A.String <$> stream ]
+
 --- 
 
-data SpoutIn = SpoutIn {
-               getCommand :: StormCommand
-             , getId :: Maybe String
-             } 
-
------
-
-data SpoutEmit = SpoutEmit {
-                 emitCommand :: StormCommand
-               , emitTupleId :: Maybe String
-               , emitStreamId :: Maybe String
-               , emitTaskId :: Maybe Integer
-               , emitTuple :: [String]
-               } deriving (Show, Eq)
+data SpoutIn = SpoutIn { getCommand :: EmitCommand } 
