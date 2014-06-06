@@ -36,10 +36,14 @@ Test-Suite spec
   Main-Is:              Spec.hs
   Build-Depends:        base
                       , aeson
+                      , async
                       , bytestring
                       , hspec
+                      , pipes
+                      , pipes-concurrency
                       , scientific
                       , text
+                      , transformers
                       , unix
                       , unordered-containers
                       , vector

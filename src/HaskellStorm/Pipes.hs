@@ -1,41 +1,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStorm.Pipes (
-    boltHandler
+module HaskellStorm.Pipes ( boltHandler
+    , groupUntil
     ) where
 
 import Control.Concurrent.Async (async)
 import Control.Monad (forever)
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.Trans.Class (lift)
-import Data.Aeson (fromJSON)
+import Data.Aeson (decode)
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.Monoid (Monoid, mconcat)
 import HaskellStorm.IO (appendEnd)
 import HaskellStorm.Internal (BoltIn, StormOut (Log))
-import Pipes.Concurrent (spawn, Buffer(Unbounded), fromInput, toOutput)
+import Pipes.Concurrent (spawn, Buffer(Unbounded), fromInput, Input, Output, toOutput)
 import Pipes ((>->), await, Consumer, Pipe, Producer, runEffect, yield)
-import Pipes.Prelude (map, stdinLn, takeWhile)
-import Prelude hiding (map, takeWhile)
+import Pipes.Prelude (stdinLn)
 import System.Mem (performGC)
 
--- chunker :: Monad m => (a -> Bool) -> Pipe a [a] m ()
--- chunker f = go f 
-
-grouper :: (Monoid a, Monad m) => (a -> Bool) -> Pipe a a m ()
-grouper f = go f ([] :: [a])
+groupUntil :: (Monoid a, Monad m) => (a -> Bool) -> Pipe a a m ()
+groupUntil f = forever $ go f []
     where
-        --go :: Monoid a => (a -> Bool) -> [a] -> Pipe a a m ()
-        go f as = do
-            elem <- await
-            if (f elem)
+        go g as = do
+            a <- await
+            if (g a)
             then yield (mconcat as)
-            else go f (as ++ [elem])
+            else go g (as ++ [a])
 
+pipeConcat :: Monad m => (a -> Maybe b) -> Pipe a b m ()
+pipeConcat f = do
+    a <- await
+    case (f a) of
+        Just b -> yield b
+        Nothing -> pipeConcat f
 
-
--- boltProducer :: Producer BoltIn IO r
--- boltProducer = stdinLn >-> takeWhile (/= "end") >-> map (\s -> fromJSON (pack s))
+boltProducer :: MonadIO m => Producer BoltIn m ()
+boltProducer = stdinLn >-> groupUntil (== "end") >-> pipeConcat (decode . pack)
 
 boltHandler :: MonadIO m => (BoltIn -> m [StormOut]) -> Consumer BoltIn m ()
 boltHandler f = forever $ do
@@ -43,10 +43,17 @@ boltHandler f = forever $ do
     outs <- lift $ f boltIn
     lift $ appendEnd outs
 
+-- TODO: figure out how to make this work with `MonadIO` instead of `IO`
+-- not sure how to run asyncronous computations within `MonadIO`.
+pipeBolt :: Input BoltIn -> Output BoltIn -> (BoltIn -> IO [StormOut]) -> IO ()
+pipeBolt input output f = do
+    _ <- async $ do runEffect $ boltProducer >-> toOutput output
+                    performGC
+    _ <- async $ do runEffect $ fromInput input >-> boltHandler f
+                    performGC
+    return ()
+
 main = do
     (boltOutput, boltInput) <- spawn Unbounded
-    async $ do runEffect $ fromInput boltInput >-> boltHandler (\_ -> return [Log "cool"])
-               performGC
-    -- async $ do runEffect $ boltProducer >-> toOutput boltOutput
-      --         performGC
+    pipeBolt boltInput boltOutput (\_ -> return [Log "cool"])
     return ()
