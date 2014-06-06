@@ -2,10 +2,12 @@
 
 module HaskellStorm.IO
     (
-        initHandshake
+      appendEnd
+    , initHandshake
     ) where
 
-import Data.Aeson (decode)
+import Control.Monad.IO.Class (liftIO, MonadIO)
+import Data.Aeson (decode, ToJSON (toJSON))
 import Data.ByteString.Lazy.Char8 (pack)
 import HaskellStorm.Internal (Handshake)
 import HaskellStorm.System (writePid)
@@ -17,3 +19,10 @@ initHandshake = do
         Just handshake -> writePid
         Nothing -> putStrLn "error"
 
+appendEnd :: MonadIO m => ToJSON a => [a] -> m ()
+appendEnd = mapM_ printAndAppend
+
+printAndAppend :: MonadIO m => ToJSON a => a -> m ()
+printAndAppend a = do
+    liftIO $ putStrLn (show $ toJSON a)
+    liftIO $ putStrLn "end"
