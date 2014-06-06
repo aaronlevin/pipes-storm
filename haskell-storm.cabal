@@ -17,8 +17,13 @@ Library
   Other-Modules:        HaskellStorm.Internal
   Build-Depends:        base >= 4 && < 5
                       , aeson
+                      , async
                       , bytestring
+                      , pipes
+                      , pipes-concurrency
+                      , scientific
                       , text
+                      , transformers
                       , unix
                       , vector
 
@@ -32,10 +37,11 @@ Test-Suite spec
   Build-Depends:        base
                       , aeson
                       , bytestring
-                      , unordered-containers
                       , hspec
+                      , scientific
                       , text
                       , unix
+                      , unordered-containers
                       , vector
 
 Source-Repository head

@@ -1,5 +1,6 @@
 module HaskellStorm (
       BoltIn (..)
+    , boltHandler
     , Handshake (..)
     , PidOut (..)
     , StormConfig (..)
@@ -22,4 +23,8 @@ import HaskellStorm.System (
 
 import HaskellStorm.IO (
     initHandshake
+    )
+
+import HaskellStorm.Pipes (
+    boltHandler
     )

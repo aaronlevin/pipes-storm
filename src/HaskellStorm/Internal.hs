@@ -14,6 +14,7 @@ import Control.Monad (mzero)
 import Data.Aeson ((.:), (.:?), (.=), Array (..), decode, FromJSON (..), object, ToJSON(..), Value(..))
 import qualified Data.Aeson as A
 import Data.Maybe (catMaybes)
+import Data.Scientific (scientific)
 import Data.Text (Text)
 import Data.Vector (fromList)
 
@@ -100,7 +101,7 @@ instance ToJSON BoltIn where
 
 data StormOut = Emit { anchors :: [Text]
                      , stream :: Maybe Text
-                     , task :: Maybe Text
+                     , task :: Maybe Integer
                      , tuples :: StormTuples
                      }
               | Ack  { ackTupleId :: Text }
@@ -112,7 +113,17 @@ instance ToJSON StormOut where
         object $ [ "anchors" .= fromList anchors
                  , "command" .= A.String "emit"
                  , "tuple" .= tuples
-                 ] ++ catMaybes [ ("stream" .=) . A.String <$> stream ]
+                 ] ++ catMaybes [ ("stream" .=) . A.String <$> stream
+                                , ("task" .=) <$> (flip scientific 0) <$> task ]
+    toJSON (Ack tupleId) = 
+        object $ [ "command" .= A.String "ack"
+                 , "id" .= A.String tupleId ]
+    toJSON (Fail tupleId) = 
+        object $ [ "command" .= A.String "fail"
+                 , "id" .= A.String tupleId ]
+    toJSON (Log msg) = 
+        object $ [ "command" .= A.String "log"
+                 , "msg" .= A.String msg ]
 
 --- 
 

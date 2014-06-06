@@ -6,7 +6,7 @@ import Data.Aeson (decode, encode, Value(Object, Number, String))
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.HashMap.Strict (fromList)
 import qualified Data.Vector as V
-import HaskellStorm (BoltIn (..), Handshake (..), PidOut(..))
+import HaskellStorm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit))
 import Test.Hspec
 
 main :: IO ()
@@ -41,3 +41,12 @@ spec = do
             (decode boltString) `shouldBe` (Just boltIn)
         it "encodes boltString appropriately" $ do
             (encode boltIn) `shouldBe` boltString
+
+    describe "StormOut.Emit" $ do
+        let tuples = V.fromList [String "cool world", String "field1", Number 3]
+        let anchors = ["1231231", "-234234234"]
+        let emit = Emit anchors (Just "1") (Just 9) tuples
+        let emitString = "{\"stream\":\"1\",\"task\":9,\"command\":\"emit\",\"tuple\":[\"cool world\",\"field1\",3],\"anchors\":[\"1231231\",\"-234234234\"]}"
+        it "encodes an emit correctly" $ do
+            (encode emit) `shouldBe` emitString
+
