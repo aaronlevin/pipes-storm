@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Pipes.Storm (
       BoltIn
     , boltHandler
