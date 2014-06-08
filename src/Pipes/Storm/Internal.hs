@@ -7,6 +7,7 @@ module Pipes.Storm.Internal
     , PidOut (..)
     , SpoutIn (..)
     , StormConfig
+    , StormContext
     , StormOut (..)
     ) where
 
