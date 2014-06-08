@@ -5,14 +5,16 @@ module HaskellStorm.Internal
     , EmitCommand (..)
     , Handshake (..)
     , PidOut (..)
+    , SpoutIn
     , StormConfig (..)
     , StormOut (..)
     ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (mzero)
-import Data.Aeson ((.:), (.:?), (.=), Array (..), decode, FromJSON (..), object, ToJSON(..), Value(..))
+import Data.Aeson ((.:), (.:?), (.=), Array (..), decode, FromJSON (..), Object, object, ToJSON(..), Value(..))
 import qualified Data.Aeson as A
+import Data.Aeson.Types (Parser)
 import Data.Maybe (catMaybes)
 import Data.Scientific (scientific)
 import Data.Text (Text)
@@ -77,7 +79,8 @@ data BoltIn = BoltIn { tupleId :: Text
                      , boltStream :: Text
                      , boltTask :: Integer
                      , inputTuples :: StormTuples
-                     } deriving (Eq, Show)
+                     }
+                     deriving (Eq, Show)
 
 instance FromJSON BoltIn where
     parseJSON (Object v) =
@@ -106,7 +109,8 @@ data StormOut = Emit { anchors :: [Text]
                      }
               | Ack  { ackTupleId :: Text }
               | Fail { failTupleId :: Text }
-              | Log  { logMsg :: Text } deriving (Eq, Show)
+              | Log  { logMsg :: Text } 
+              deriving (Eq, Show)
 
 instance ToJSON StormOut where
     toJSON (Emit anchors stream task tuples) =
@@ -127,4 +131,19 @@ instance ToJSON StormOut where
 
 --- 
 
-data SpoutIn = SpoutIn { getCommand :: EmitCommand } 
+data SpoutIn = SpoutNext
+             | SpoutAck { spoutAckId :: Text }
+             | SpoutFail { spoutFailId :: Text } 
+             deriving (Eq, Show)
+
+instance FromJSON SpoutIn where
+    parseJSON (Object v) = 
+        (v .: "command") >>= (go v)
+            where
+                go :: Object -> Text -> Parser SpoutIn
+                go o t = case t of
+                    "next" -> return SpoutNext
+                    "ack"  -> SpoutAck <$> o .: "id"
+                    "fail" -> SpoutFail <$> o .: "id"
+                    _      -> mzero
+    parseJSON _          = mzero

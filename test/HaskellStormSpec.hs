@@ -6,7 +6,7 @@ import Data.Aeson (decode, encode, Value(Object, Number, String))
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.HashMap.Strict (fromList)
 import qualified Data.Vector as V
-import HaskellStorm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit))
+import HaskellStorm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit), SpoutIn)
 import Test.Hspec
 
 main :: IO ()
@@ -49,4 +49,15 @@ spec = do
         let emitString = "{\"stream\":\"1\",\"task\":9,\"command\":\"emit\",\"tuple\":[\"cool world\",\"field1\",3],\"anchors\":[\"1231231\",\"-234234234\"]}"
         it "encodes an emit correctly" $ do
             (encode emit) `shouldBe` emitString
+
+    describe "SpoutIn" $ do
+        let nextString = "{\"command\":\"next\"}"
+        let ackString = "{\"command\":\"ack\", \"id\":\"123456\"}"
+        let failString = "{\"command\":\"fail\", \"id\":\"123456\"}"
+        let next = SpoutNext
+        let ack = SpoutAck "123456"
+        let fail = SpoutFail "123456"
+        it "decodes next json correctly" $ do
+            (decode nextString) `shouldBe` (Just next)
+
 
