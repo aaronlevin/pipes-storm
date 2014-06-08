@@ -1,22 +1,22 @@
 module Pipes.Storm (
-      BoltIn (..)
+      BoltIn
     , boltHandler
-    , Handshake (..)
-    , PidOut (..)
-    , SpoutIn (..)
-    , StormConfig (..)
-    , StormOut (..)
+    , Handshake
+    , PidOut
+    , SpoutIn (SpoutAck, SpoutNext, SpoutFail)
+    , StormConfig
+    , StormOut (Ack, Emit, Fail, Log)
     , initHandshake
     , writePid
   ) where
 
 import Pipes.Storm.Internal (
-        BoltIn (..)
-      , Handshake (..)
-      , PidOut (..)
-      , SpoutIn (..)
-      , StormConfig (..)
-      , StormOut (..)
+        BoltIn
+      , Handshake
+      , PidOut
+      , SpoutIn (SpoutAck, SpoutNext, SpoutFail)
+      , StormConfig
+      , StormOut (Ack, Emit, Fail, Log)
     )
 
 import Pipes.Storm.System (

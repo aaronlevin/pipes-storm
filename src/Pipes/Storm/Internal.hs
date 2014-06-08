@@ -6,13 +6,13 @@ module Pipes.Storm.Internal
     , Handshake (..)
     , PidOut (..)
     , SpoutIn (..)
-    , StormConfig (..)
+    , StormConfig
     , StormOut (..)
     ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (mzero)
-import Data.Aeson ((.:), (.:?), (.=), Array (..), decode, FromJSON (..), Object, object, ToJSON(..), Value(..))
+import Data.Aeson ((.:), (.=), Array, FromJSON (..), Object, object, ToJSON(..), Value(..))
 import qualified Data.Aeson as A
 import Data.Aeson.Types (Parser)
 import Data.Maybe (catMaybes)
@@ -74,12 +74,11 @@ instance ToJSON EmitCommand where
 
 ---
 
-data BoltIn = BoltIn { tupleId :: Text
-                     , boltComponent :: Text
-                     , boltStream :: Text
-                     , boltTask :: Integer
-                     , inputTuples :: StormTuples
-                     }
+data BoltIn = BoltIn Text -- tuple Id
+                     Text -- bolt Component
+                     Text -- bolt stream
+                     Integer -- bolt task
+                     StormTuples -- input tuples
                      deriving (Eq, Show)
 
 instance FromJSON BoltIn where
@@ -92,24 +91,20 @@ instance FromJSON BoltIn where
     parseJSON _ = mzero
 
 instance ToJSON BoltIn where
-    toJSON (BoltIn tupleId boltComponent boltStream boltTask inputTuples) =
+    toJSON (BoltIn tupleId boltComponent boltStream boltInTask inputTuples) =
         object [ "id" .= toJSON tupleId
                , "comp" .= toJSON boltComponent
                , "stream" .= toJSON boltStream
-               , "task" .= toJSON boltTask
+               , "task" .= toJSON boltInTask
                , "tuple" .= toJSON inputTuples
                ]
 
 ---
 
-data StormOut = Emit { anchors :: [Text]
-                     , stream :: Maybe Text
-                     , task :: Maybe Integer
-                     , tuples :: StormTuples
-                     }
-              | Ack  { ackTupleId :: Text }
-              | Fail { failTupleId :: Text }
-              | Log  { logMsg :: Text }
+data StormOut = Emit [Text] (Maybe Text) (Maybe Integer) StormTuples
+              | Ack  Text
+              | Fail Text
+              | Log  Text
               deriving (Eq, Show)
 
 instance ToJSON StormOut where
@@ -119,12 +114,12 @@ instance ToJSON StormOut where
                  , "tuple" .= tuples
                  ] ++ catMaybes [ ("stream" .=) . A.String <$> stream
                                 , ("task" .=) <$> (flip scientific 0) <$> task ]
-    toJSON (Ack tupleId) =
+    toJSON (Ack ackTupleId) =
         object $ [ "command" .= A.String "ack"
-                 , "id" .= A.String tupleId ]
-    toJSON (Fail tupleId) =
+                 , "id" .= A.String ackTupleId ]
+    toJSON (Fail failTupleId) =
         object $ [ "command" .= A.String "fail"
-                 , "id" .= A.String tupleId ]
+                 , "id" .= A.String failTupleId ]
     toJSON (Log msg) =
         object $ [ "command" .= A.String "log"
                  , "msg" .= A.String msg ]

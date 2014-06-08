@@ -6,7 +6,7 @@ module Pipes.Storm.Pipes ( boltHandler
 
 import Control.Concurrent.Async (async)
 import Control.Monad (forever)
-import Control.Monad.IO.Class (liftIO, MonadIO)
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Data.Aeson (decode)
 import Data.ByteString.Lazy.Char8 (pack)
