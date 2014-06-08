@@ -32,14 +32,14 @@ data Handshake = Handshake { getConf :: StormConfig
                            } deriving (Eq, Show)
 
 instance FromJSON Handshake where
-    parseJSON (Object v) = 
+    parseJSON (Object v) =
         Handshake <$> v .: "conf"
                   <*> v .: "context"
                   <*> v .: "pidDir"
     parseJSON _ = mzero
 
 instance ToJSON Handshake where
-    toJSON (Handshake config context pidDir) = 
+    toJSON (Handshake config context pidDir) =
         object [ "conf" .= toJSON config
                , "context" .= toJSON context
                , "pidDir" .= pidDir
@@ -50,7 +50,7 @@ instance ToJSON Handshake where
 data PidOut = PidOut { getPid :: Integer } deriving (Show, Eq)
 
 instance FromJSON PidOut where
-    parseJSON (Object v) = 
+    parseJSON (Object v) =
         PidOut <$> v .: "pid"
     parseJSON _ = mzero
 
@@ -92,7 +92,7 @@ instance FromJSON BoltIn where
     parseJSON _ = mzero
 
 instance ToJSON BoltIn where
-    toJSON (BoltIn tupleId boltComponent boltStream boltTask inputTuples) = 
+    toJSON (BoltIn tupleId boltComponent boltStream boltTask inputTuples) =
         object [ "id" .= toJSON tupleId
                , "comp" .= toJSON boltComponent
                , "stream" .= toJSON boltStream
@@ -109,7 +109,7 @@ data StormOut = Emit { anchors :: [Text]
                      }
               | Ack  { ackTupleId :: Text }
               | Fail { failTupleId :: Text }
-              | Log  { logMsg :: Text } 
+              | Log  { logMsg :: Text }
               deriving (Eq, Show)
 
 instance ToJSON StormOut where
@@ -119,13 +119,13 @@ instance ToJSON StormOut where
                  , "tuple" .= tuples
                  ] ++ catMaybes [ ("stream" .=) . A.String <$> stream
                                 , ("task" .=) <$> (flip scientific 0) <$> task ]
-    toJSON (Ack tupleId) = 
+    toJSON (Ack tupleId) =
         object $ [ "command" .= A.String "ack"
                  , "id" .= A.String tupleId ]
-    toJSON (Fail tupleId) = 
+    toJSON (Fail tupleId) =
         object $ [ "command" .= A.String "fail"
                  , "id" .= A.String tupleId ]
-    toJSON (Log msg) = 
+    toJSON (Log msg) =
         object $ [ "command" .= A.String "log"
                  , "msg" .= A.String msg ]
 
@@ -133,11 +133,11 @@ instance ToJSON StormOut where
 
 data SpoutIn = SpoutNext
              | SpoutAck { spoutAckId :: Text }
-             | SpoutFail { spoutFailId :: Text } 
+             | SpoutFail { spoutFailId :: Text }
              deriving (Eq, Show)
 
 instance FromJSON SpoutIn where
-    parseJSON (Object v) = 
+    parseJSON (Object v) =
         (v .: "command") >>= (go v)
             where
                 go :: Object -> Text -> Parser SpoutIn
