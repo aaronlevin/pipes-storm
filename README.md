@@ -1,10 +1,6 @@
-# haskell-storm
+# pipes-storm
 
-TODO: Write description here
-
-## Installation
-
-TODO: Write installation instructions here
+Use `pipes-concurrency` to construct `bolts` and `spouts` in [Apache Storm](http://storm.incubator.apache.org/).
 
 ## Usage
 
@@ -18,4 +14,4 @@ cabal configure --enable-tests && cabal build && cabal test
 
 ## Contributing
 
-TODO: Write contribution instructions here
+Please feel free to submit a pull request and add you to the AUTHORS document!
