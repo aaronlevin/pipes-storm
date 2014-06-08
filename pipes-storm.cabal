@@ -1,5 +1,5 @@
-Name:                   haskell-storm
-Version:                0.0.0
+Name:                   pipes-storm
+Version:                0.0.1
 Author:                 Aaron Levin <aaron.levin@demeure.com>
 Maintainer:             Aaron Levin <aaron.levin@demeure.com>
 License:                BSD3
@@ -13,8 +13,8 @@ Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
   GHC-Options:          -Wall
-  Exposed-Modules:      HaskellStorm
-  Other-Modules:        HaskellStorm.Internal
+  Exposed-Modules:      Pipes.Storm
+  Other-Modules:        Pipes.Storm.Internal
   Build-Depends:        base >= 4 && < 5
                       , aeson
                       , async

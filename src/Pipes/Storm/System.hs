@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStorm.System
+module Pipes.Storm.System
 (
     writePid
         ) where

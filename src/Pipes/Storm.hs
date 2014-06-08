@@ -1,30 +1,32 @@
-module HaskellStorm (
+module Pipes.Storm (
       BoltIn (..)
     , boltHandler
     , Handshake (..)
     , PidOut (..)
+    , SpoutIn (..)
     , StormConfig (..)
     , StormOut (..)
     , initHandshake
     , writePid
   ) where
 
-import HaskellStorm.Internal (
+import Pipes.Storm.Internal (
         BoltIn (..)
       , Handshake (..)
       , PidOut (..)
+      , SpoutIn (..)
       , StormConfig (..)
       , StormOut (..)
     )
 
-import HaskellStorm.System (
+import Pipes.Storm.System (
     writePid
     )
 
-import HaskellStorm.IO (
+import Pipes.Storm.IO (
     initHandshake
     )
 
-import HaskellStorm.Pipes (
+import Pipes.Storm.Pipes (
     boltHandler
     )

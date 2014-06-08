@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStormSpec (main, spec) where
+module PipesStormSpec (main, spec) where
 
 import Data.Aeson (decode, encode, Value(Object, Number, String))
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.HashMap.Strict (fromList)
 import qualified Data.Vector as V
-import HaskellStorm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit), SpoutIn)
+import Pipes.Storm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit), SpoutIn(..))
 import Test.Hspec
 
 main :: IO ()

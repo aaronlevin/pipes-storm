@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStorm.IO
+module Pipes.Storm.IO
     (
       appendEnd
     , initHandshake
@@ -9,8 +9,8 @@ module HaskellStorm.IO
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Data.Aeson (decode, ToJSON (toJSON))
 import Data.ByteString.Lazy.Char8 (pack)
-import HaskellStorm.Internal (Handshake)
-import HaskellStorm.System (writePid)
+import Pipes.Storm.Internal (Handshake)
+import Pipes.Storm.System (writePid)
 
 initHandshake :: IO ()
 initHandshake = do

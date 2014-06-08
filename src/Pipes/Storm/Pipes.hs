@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStorm.Pipes ( boltHandler
+module Pipes.Storm.Pipes ( boltHandler
     , groupUntil
     ) where
 
@@ -11,8 +11,8 @@ import Control.Monad.Trans.Class (lift)
 import Data.Aeson (decode)
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.Monoid (Monoid, mconcat)
-import HaskellStorm.IO (appendEnd)
-import HaskellStorm.Internal (BoltIn, StormOut (Log))
+import Pipes.Storm.IO (appendEnd)
+import Pipes.Storm.Internal (BoltIn, StormOut (Log))
 import Pipes.Concurrent (spawn, Buffer(Unbounded), fromInput, Input, Output, toOutput)
 import Pipes ((>->), await, Consumer, Pipe, Producer, runEffect, yield)
 import Pipes.Prelude (stdinLn)
@@ -53,6 +53,7 @@ pipeBolt input output f = do
                     performGC
     return ()
 
+main :: IO ()
 main = do
     (boltOutput, boltInput) <- spawn Unbounded
     pipeBolt boltInput boltOutput (\_ -> return [Log "cool"])

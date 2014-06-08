@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellStorm.Internal
+module Pipes.Storm.Internal
     ( BoltIn (..)
     , EmitCommand (..)
     , Handshake (..)
     , PidOut (..)
-    , SpoutIn
+    , SpoutIn (..)
     , StormConfig (..)
     , StormOut (..)
     ) where
