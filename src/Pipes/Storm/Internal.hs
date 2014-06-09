@@ -2,7 +2,6 @@
 
 module Pipes.Storm.Internal
     ( BoltIn (..)
-    , EmitCommand (..)
     , Handshake (..)
     , PidOut (..)
     , SpoutIn (..)
@@ -21,12 +20,18 @@ import Data.Scientific (scientific)
 import Data.Text (Text)
 import Data.Vector (fromList)
 
+-- |Type alias for a Storm Configuration. Often storm will provide a complex JSON structure
+-- as configuration
 type StormConfig = Value
+
+-- |Type alias for the context in which a storm bolt or spout is running within.
 type StormContext = Value
+
+-- |Type alias for tuples. Currently a JSON array, but in the future, when topologies
+-- are defined within the library this may change.
 type StormTuples = Array
 
------
-
+-- |ADT representing the data passed to a multilang storm process when it starts.
 data Handshake = Handshake { getConf :: StormConfig
                            , getContext :: StormContext
                            , getPidDir :: Text
@@ -46,8 +51,8 @@ instance ToJSON Handshake where
                , "pidDir" .= pidDir
                ]
 
----
-
+-- |Small wrapper around Integer for serialization purposes. After the Handshake data
+-- is received within a storm process we must emit the process id as JSON.
 data PidOut = PidOut { getPid :: Integer } deriving (Show, Eq)
 
 instance FromJSON PidOut where
@@ -58,23 +63,7 @@ instance FromJSON PidOut where
 instance ToJSON PidOut where
     toJSON (PidOut pid) = object [ "pid" .= pid ]
 
----
-
-data EmitCommand = EmitNext | EmitAck | EmitFail deriving (Show, Eq)
-
-instance FromJSON EmitCommand where
-    parseJSON (A.String "next") = return EmitNext
-    parseJSON (A.String "ack")  = return EmitAck
-    parseJSON (A.String "fail") = return EmitFail
-    parseJSON _                 = mzero
-
-instance ToJSON EmitCommand where
-    toJSON EmitNext = A.String "next"
-    toJSON EmitAck  = A.String "ack"
-    toJSON EmitFail = A.String "fail"
-
----
-
+-- |Data a Storm Bolt receives on stdin.
 data BoltIn = BoltIn Text -- tuple Id
                      Text -- bolt Component
                      Text -- bolt stream
@@ -100,8 +89,25 @@ instance ToJSON BoltIn where
                , "tuple" .= toJSON inputTuples
                ]
 
----
+-- |Data a Storm Spout receives on stdin.
+data SpoutIn = SpoutNext
+             | SpoutAck { spoutAckId :: Text }
+             | SpoutFail { spoutFailId :: Text }
+             deriving (Eq, Show)
 
+instance FromJSON SpoutIn where
+    parseJSON (Object v) =
+        (v .: "command") >>= (go v)
+            where
+                go :: Object -> Text -> Parser SpoutIn
+                go o t = case t of
+                    "next" -> return SpoutNext
+                    "ack"  -> SpoutAck <$> o .: "id"
+                    "fail" -> SpoutFail <$> o .: "id"
+                    _      -> mzero
+    parseJSON _          = mzero
+
+-- |Data a Storm Bolt or Spout emits on stdout.
 data StormOut = Emit [Text] (Maybe Text) (Maybe Integer) StormTuples
               | Ack  Text
               | Fail Text
@@ -125,21 +131,3 @@ instance ToJSON StormOut where
         object $ [ "command" .= A.String "log"
                  , "msg" .= A.String msg ]
 
---- 
-
-data SpoutIn = SpoutNext
-             | SpoutAck { spoutAckId :: Text }
-             | SpoutFail { spoutFailId :: Text }
-             deriving (Eq, Show)
-
-instance FromJSON SpoutIn where
-    parseJSON (Object v) =
-        (v .: "command") >>= (go v)
-            where
-                go :: Object -> Text -> Parser SpoutIn
-                go o t = case t of
-                    "next" -> return SpoutNext
-                    "ack"  -> SpoutAck <$> o .: "id"
-                    "fail" -> SpoutFail <$> o .: "id"
-                    _      -> mzero
-    parseJSON _          = mzero

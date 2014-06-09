@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Pipes.Storm (
-      BoltIn
-    , Handshake
-    , PidOut
+      BoltIn (BoltIn)
+    , Handshake (Handshake)
+    , PidOut (PidOut)
     , SpoutIn (SpoutAck, SpoutNext, SpoutFail)
     , StormConfig
     , StormContext
@@ -11,13 +11,14 @@ module Pipes.Storm (
     , initHandshake
     , stormBolt
     , stormSpout
+    , writePid
   ) where
 
 import Pipes.Concurrent (Buffer (Unbounded), Input, Output, spawn)
 import Pipes.Storm.Internal (
-        BoltIn
-      , Handshake
-      , PidOut
+        BoltIn (..)
+      , Handshake (..)
+      , PidOut (..)
       , SpoutIn (SpoutAck, SpoutNext, SpoutFail)
       , StormConfig
       , StormContext

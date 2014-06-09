@@ -6,7 +6,7 @@ import Data.Aeson (decode, encode, Value(Object, Number, String))
 import Data.ByteString.Lazy.Char8 (pack)
 import Data.HashMap.Strict (fromList)
 import qualified Data.Vector as V
-import Pipes.Storm (BoltIn (..), Handshake (..), PidOut(..), StormOut (Emit), SpoutIn(..))
+import Pipes.Storm (BoltIn (BoltIn), Handshake (Handshake), PidOut (PidOut), StormOut (Emit), SpoutIn(..))
 import Test.Hspec
 
 main :: IO ()
@@ -56,8 +56,10 @@ spec = do
         let failString = "{\"command\":\"fail\", \"id\":\"123456\"}"
         let next = SpoutNext
         let ack = SpoutAck "123456"
-        let fail = SpoutFail "123456"
+        let spoutFail = SpoutFail "123456"
         it "decodes next json correctly" $ do
             (decode nextString) `shouldBe` (Just next)
+            (decode ackString) `shouldBe` (Just ack)
+            (decode failString) `shouldBe` (Just spoutFail)
 
 
